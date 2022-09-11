@@ -87,8 +87,8 @@ const data = [
     thead.insertAdjacentHTML('beforeend', `
     <tr>
       <th class="delete">Удалить</th>
-      <th>Имя</th>
-      <th>Фамилия</th>
+      <th data-type="name">Имя</th>
+      <th data-type="name">Фамилия</th>
       <th>Телефон</th>
       <th></th>
     </tr>
@@ -257,7 +257,7 @@ const data = [
         logo.textContent = text;
       });
     })
-  }
+  };
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
@@ -292,8 +292,31 @@ const data = [
       if (target.closest('.del-icon')) {
         target.closest('.contact').remove();
       }
-    })
+    });
 
+    const thead = document.querySelector('.table thead');
+
+    thead.addEventListener('click', e => {
+      if (e.target.tagName !== 'TH') return;
+
+      let th = e.target;
+      sortTable(th.cellIndex, th.dataset.type);
+    });
+
+    const sortTable = (colNum, type) => {
+      let rowsArray = Array.from(list.rows);
+      let compare;
+
+      if (type === 'name') {
+        compare = (rowA, rowB) => {
+          return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML ? 1 : -1;
+        };
+      }
+
+      rowsArray.sort(compare);
+
+      list.append(...rowsArray);
+    };
   };
 
   window.phoneBookInit = init;
