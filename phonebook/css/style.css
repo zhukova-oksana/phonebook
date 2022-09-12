@@ -145,3 +145,6 @@ body {
   background-position: center;
   background-image: url("../img/edit.svg");
 }
+th[data-type="name"]:hover {
+  cursor: pointer;
+}
