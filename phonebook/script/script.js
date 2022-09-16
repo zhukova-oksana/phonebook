@@ -1,29 +1,71 @@
 'use strict';
 
-const data = [
-  {
-    name: 'Иван',
-    surname: 'Петров',
-    phone: '+79514545454',
-  },
-  {
-    name: 'Игорь',
-    surname: 'Семёнов',
-    phone: '+79999999999',
-  },
-  {
-    name: 'Семён',
-    surname: 'Иванов',
-    phone: '+79800252525',
-  },
-  {
-    name: 'Мария',
-    surname: 'Попова',
-    phone: '+79876543210',
-  },
-];
+// const data = [
+//   {
+//     name: 'Иван',
+//     surname: 'Петров',
+//     phone: '+79514545454',
+//   },
+//   {
+//     name: 'Игорь',
+//     surname: 'Семёнов',
+//     phone: '+79999999999',
+//   },
+//   {
+//     name: 'Семён',
+//     surname: 'Иванов',
+//     phone: '+79800252525',
+//   },
+//   {
+//     name: 'Мария',
+//     surname: 'Попова',
+//     phone: '+79876543210',
+//   },
+// ];
 
 {
+
+  let arrayPersons = [];
+  const getStorage = (key) => {
+    // const item = ;
+    //
+    // if (item) {
+    //   const person = JSON.parse(item);
+    //   return person;
+    // } else {
+    //   return [];
+    // }
+    let itemsArray = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : [];
+    return itemsArray;
+  }
+
+  const setStorage = (key, obj) => {
+    arrayPersons = getStorage(key);
+    arrayPersons.push(obj);
+    localStorage.setItem(key, JSON.stringify(arrayPersons));
+
+    return arrayPersons;
+  }
+
+  const removeStorage = (phone) => {
+    arrayPersons = getStorage('persons');
+
+    for (let i = 0; i < arrayPersons.length; i++) {
+      if (arrayPersons[i].phone === String(phone)) {
+        arrayPersons.splice(i, 1);
+      }
+      localStorage.setItem('persons', JSON.stringify(arrayPersons));
+    }
+
+  }
+
+
+// setStorage('persons', {name: 'Иван',  surname: 'Петров',  phone: '+79514545454'});
+// setStorage('person1', {name: 'Мария',surname: 'Попова', phone: '+79876543210'});
+
+
+// localStorage.clear();
+
   const addContactData = contact => {
     data.push(contact);
     console.log('data:', data);
@@ -207,6 +249,7 @@ const data = [
     const tdSurname = document.createElement('td');
     tdSurname.textContent = surname;
     const tdPhone = document.createElement('td');
+    tdPhone.classList.add('phone');
     const phoneLink = document.createElement('a');
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
@@ -299,7 +342,11 @@ const data = [
 
     list.addEventListener('click', e => {
       const target = e.target;
+
+      console.log();
       if (target.closest('.del-icon')) {
+        const phone = target.closest('.contact').childNodes[3].textContent;
+        removeStorage(phone);
         target.closest('.contact').remove();
       }
     });
@@ -310,13 +357,23 @@ const data = [
   }
 
   const formControl = (form, list, closeModal) => {
+
+
     form.addEventListener('submit', e => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const newContact = Object.fromEntries(formData);
+      const key = 'persons';
 
       addContactPage(newContact, list);
-      addContactData(newContact);
+      setStorage(key, newContact);
+
+
+      // addContactData(newContact);
+
+      // console.log(key);
+      // console.log('newContact', newContact);
+
       form.reset();
       closeModal();
     });
@@ -327,35 +384,40 @@ const data = [
     const {list, logo, btnAdd, formOverlay, form, btnDel} = renderPhoneBook(app, title);
 
     // Функционал
-
-    const allRow = renderContacts(list, data);
     const {closeModal} = modalControl(btnAdd, formOverlay);
+    const data = JSON.parse(localStorage.getItem('persons'));
+    console.log('data', data);
+    if (data) {
+      const allRow = renderContacts(list, data);
 
-    hoverRow(allRow, logo);
-    deleteControl(btnDel, list);
 
-    const thead = document.querySelector('.table thead');
+      hoverRow(allRow, logo);
+      deleteControl(btnDel, list);
 
-    thead.addEventListener('click', e => {
-      if (e.target.tagName !== 'TH') return;
+      const thead = document.querySelector('.table thead');
 
-      let th = e.target;
-      sortTable(th.cellIndex, th.dataset.type);
-    });
+      thead.addEventListener('click', e => {
+        if (e.target.tagName !== 'TH') return;
 
-    const sortTable = (colNum, type) => {
-      let rowsArray = Array.from(list.rows);
-      let compare;
+        let th = e.target;
+        sortTable(th.cellIndex, th.dataset.type);
+      });
 
-      if (type === 'name') {
-        compare = (rowA, rowB) => {
-          return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML ? 1 : -1;
-        };
-      }
+      const sortTable = (colNum, type) => {
+        let rowsArray = Array.from(list.rows);
+        let compare;
 
-      rowsArray.sort(compare);
-      list.append(...rowsArray);
-    };
+        if (type === 'name') {
+          compare = (rowA, rowB) => {
+            return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML ? 1 : -1;
+          };
+        }
+
+        rowsArray.sort(compare);
+        list.append(...rowsArray);
+      };
+    }
+
 
     formControl(form, list, closeModal);
   };
