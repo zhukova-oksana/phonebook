@@ -47,16 +47,12 @@
     return arrayPersons;
   }
 
-  const removeStorage = (phone) => {
+  const removeStorage = (index, phone) => {
     arrayPersons = getStorage('persons');
-
-    for (let i = 0; i < arrayPersons.length; i++) {
-      if (arrayPersons[i].phone === String(phone)) {
-        arrayPersons.splice(i, 1);
-      }
-      localStorage.setItem('persons', JSON.stringify(arrayPersons));
+    if (arrayPersons[index].phone === phone) {
+      arrayPersons.splice(index, 1);
     }
-
+    localStorage.setItem('persons', JSON.stringify(arrayPersons));
   }
 
 
@@ -68,7 +64,6 @@
 
   const addContactData = contact => {
     data.push(contact);
-    console.log('data:', data);
   };
 
   const createContainer = () => {
@@ -234,9 +229,10 @@
     };
   };
 
-  const createRow = ({name: firstName, surname, phone}) => {
+  const createRow = ({name: firstName, surname, phone}, index) => {
     const tr = document.createElement('tr');
     tr.classList.add('contact');
+    tr.setAttribute('data-id', index);
 
     const tdDel = document.createElement('td');
     tdDel.classList.add('delete');
@@ -268,9 +264,13 @@
   };
 
   const renderContacts = (elem, data) => {
-    const allRow = data.map(createRow);
-    elem.append(...allRow);
+    const allRow = data.map((elem, index) => {
+      return createRow(elem, index);
+    });
 
+    // console.log('allRow', allRow);
+
+    elem.append(...allRow);
     return allRow;
   };
 
@@ -342,11 +342,10 @@
 
     list.addEventListener('click', e => {
       const target = e.target;
-
-      console.log();
       if (target.closest('.del-icon')) {
         const phone = target.closest('.contact').childNodes[3].textContent;
-        removeStorage(phone);
+        const index = target.closest('.contact').getAttribute('data-id');
+        removeStorage(index, phone);
         target.closest('.contact').remove();
       }
     });
@@ -368,11 +367,7 @@
       addContactPage(newContact, list);
       setStorage(key, newContact);
 
-
       // addContactData(newContact);
-
-      // console.log(key);
-      // console.log('newContact', newContact);
 
       form.reset();
       closeModal();
@@ -389,7 +384,6 @@
     console.log('data', data);
     if (data) {
       const allRow = renderContacts(list, data);
-
 
       hoverRow(allRow, logo);
       deleteControl(btnDel, list);
