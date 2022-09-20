@@ -25,45 +25,32 @@
 
 {
 
-  let arrayPersons = [];
   const getStorage = (key) => {
-    // const item = ;
-    //
-    // if (item) {
-    //   const person = JSON.parse(item);
-    //   return person;
-    // } else {
-    //   return [];
-    // }
-    let itemsArray = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : [];
-    return itemsArray;
-  }
+    return localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : [];
+  };
 
   const setStorage = (key, obj) => {
-    arrayPersons = getStorage(key);
-    arrayPersons.push(obj);
-    localStorage.setItem(key, JSON.stringify(arrayPersons));
-
-    return arrayPersons;
+    localStorage.setItem(key, JSON.stringify(obj));
   }
 
   const removeStorage = (index, phone) => {
-    arrayPersons = getStorage('persons');
-    if (arrayPersons[index].phone === phone) {
-      arrayPersons.splice(index, 1);
+    const data = getStorage('persons');
+    if (data[index].phone === phone) {
+      data.splice(index, 1);
     }
-    localStorage.setItem('persons', JSON.stringify(arrayPersons));
+    setStorage('persons', data);
   }
-
-
-// setStorage('persons', {name: 'Иван',  surname: 'Петров',  phone: '+79514545454'});
-// setStorage('person1', {name: 'Мария',surname: 'Попова', phone: '+79876543210'});
-
 
 // localStorage.clear();
 
-  const addContactData = contact => {
+  let index = 0;
+
+  const addContactData = (contact) => {
+    const data = getStorage('persons');
+
     data.push(contact);
+    setStorage('persons', data);
+    index = data.length;
   };
 
   const createContainer = () => {
@@ -264,8 +251,8 @@
   };
 
   const renderContacts = (elem, data) => {
-    const allRow = data.map((elem, index) => {
-      return createRow(elem, index);
+    const allRow = data.map((elem, ind) => {
+      return createRow(elem, ind);
     });
 
     // console.log('allRow', allRow);
@@ -344,34 +331,54 @@
       const target = e.target;
       if (target.closest('.del-icon')) {
         const phone = target.closest('.contact').childNodes[3].textContent;
-        const index = target.closest('.contact').getAttribute('data-id');
-        removeStorage(index, phone);
+        const ind = target.closest('.contact').getAttribute('data-id');
+        removeStorage(ind, phone);
         target.closest('.contact').remove();
       }
     });
   };
 
   const addContactPage = (contact, list) => {
-    list.append(createRow(contact));
+    list.append(createRow(contact, index));
   }
 
   const formControl = (form, list, closeModal) => {
-
-
     form.addEventListener('submit', e => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const newContact = Object.fromEntries(formData);
-      const key = 'persons';
 
       addContactPage(newContact, list);
-      setStorage(key, newContact);
-
-      // addContactData(newContact);
+      addContactData(newContact);
 
       form.reset();
       closeModal();
     });
+  };
+
+  const sortTh = (list) => {
+    const thead = document.querySelector('.table thead');
+
+    thead.addEventListener('click', e => {
+      if (e.target.tagName !== 'TH') return;
+
+      let th = e.target;
+      sortTable(th.cellIndex, th.dataset.type);
+    });
+
+    const sortTable = (colNum, type) => {
+      let rowsArray = Array.from(list.rows);
+      let compare;
+
+      if (type === 'name') {
+        compare = (rowA, rowB) => {
+          return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML ? 1 : -1;
+        };
+      }
+
+      rowsArray.sort(compare);
+      list.append(...rowsArray);
+    };
   }
 
   const init = (selectorApp, title) => {
@@ -380,38 +387,16 @@
 
     // Функционал
     const {closeModal} = modalControl(btnAdd, formOverlay);
-    const data = JSON.parse(localStorage.getItem('persons'));
-    console.log('data', data);
-    if (data) {
+    const data = getStorage('persons');
+
+    // if (data) {
       const allRow = renderContacts(list, data);
 
       hoverRow(allRow, logo);
       deleteControl(btnDel, list);
+      sortTh(list);
 
-      const thead = document.querySelector('.table thead');
-
-      thead.addEventListener('click', e => {
-        if (e.target.tagName !== 'TH') return;
-
-        let th = e.target;
-        sortTable(th.cellIndex, th.dataset.type);
-      });
-
-      const sortTable = (colNum, type) => {
-        let rowsArray = Array.from(list.rows);
-        let compare;
-
-        if (type === 'name') {
-          compare = (rowA, rowB) => {
-            return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML ? 1 : -1;
-          };
-        }
-
-        rowsArray.sort(compare);
-        list.append(...rowsArray);
-      };
-    }
-
+    // }
 
     formControl(form, list, closeModal);
   };
