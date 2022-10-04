@@ -44,11 +44,8 @@
 
   const addContactData = (contact) => {
     const data = getStorage('persons');
-    // let index;
     data.push(contact);
     setStorage('persons', data);
-    // index = data.length;
-    // return index;
   };
 
   const createContainer = () => {
