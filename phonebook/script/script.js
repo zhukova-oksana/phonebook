@@ -326,13 +326,9 @@
         const phone = target.closest('.contact').childNodes[3].textContent;
         const ind = target.closest('.contact').getAttribute('data-id');
         removeStorage(ind, phone);
-        target.closest('.contact').remove();
-        while (list.firstChild) {
-          list.removeChild(list.lastChild);
-        }
-        const listNew = list;
+        list.textContent = '';
         const data = getStorage('persons');
-        renderContacts(listNew, data);
+        renderContacts(list, data);
         document.querySelectorAll('.delete').forEach(del => {
           del.classList.add('is-visible');
         });
